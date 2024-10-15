@@ -3,7 +3,6 @@ import random
 import pytest
 import requests
 
-
 class YaUploader:
     def __init__(self):
         pass
@@ -69,5 +68,3 @@ def test_proverka_upload_dog(breed):
         for item in response.json()['_embedded']['items']:
             assert item['type'] == 'file'
             assert item['name'].startswith(breed)
-
-
