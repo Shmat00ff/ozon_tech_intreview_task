@@ -3,7 +3,10 @@ import pytest
 import requests
 import os
 import logging
-from retrying import retry
+
+import retrying
+from retry import retry
+from retrying
 
 #Делаем логи, для простоты отслеживания событий
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +42,7 @@ class YaUploader:
         return True
 
     #Добавим декоратор для исключения ошибок
-    @retry()
+    @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
     def upload_photos_to_yd(self, path, url_file, name):
         """
         Загружает файл по URL на Яндекс.Диск.
@@ -50,6 +53,7 @@ class YaUploader:
             response = requests.post(upload_url, headers=self.headers, params=params)
             response.raise_for_status()
             logging.info(f'Файл "{name}" загружен в папку "{path}".')
+
         except requests.exceptions.HTTPError as err:
             logging.error(f'Ошибка при загрузке файла "{name}": {err}')
             return False
