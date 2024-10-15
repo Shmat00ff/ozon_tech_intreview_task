@@ -3,10 +3,7 @@ import pytest
 import requests
 import os
 import logging
-
-import retrying
-from retry import retry
-from retrying
+from retrying import retry
 
 #Делаем логи, для простоты отслеживания событий
 logging.basicConfig(level=logging.INFO)
@@ -42,7 +39,7 @@ class YaUploader:
         return True
 
     #Добавим декоратор для исключения ошибок
-    @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def upload_photos_to_yd(self, path, url_file, name):
         """
         Загружает файл по URL на Яндекс.Диск.
@@ -61,11 +58,23 @@ class YaUploader:
 
 
 def get_sub_breeds(breed):
-    res = requests.get(f'https://dog.ceo/api/breed/{breed}/list')
-    return res.json().get('message', [])
+    """
+    Получает список подпород для указанной породы.
+    """
+    try:
+        result = requests.get(f'https://dog.ceo/api/breed/{breed}/list')
+        result.raise_for_status()
+        return result.json().get('message', [])
+    except (requests.exceptions.HTTPError, ValueError) as err:
+        logging.error(f'Ошибка при получении подпород для "{breed}": {err}')
+        return []
+
 
 
 def get_urls(breed, sub_breeds):
+    """
+    Получает список URL случайных изображений для породы и ее подпород.
+    """
     url_images = []
     if sub_breeds:
         for sub_breed in sub_breeds:
@@ -76,24 +85,39 @@ def get_urls(breed, sub_breeds):
         url_images.append(requests.get(f"https://dog.ceo/api/breed/{breed}/images/random").json().get('message'))
     return url_images
 
-
-def u(breed):
+#
+def upload_images(breed, folder_name):
+    """
+    Загружает изображения для породы и ее подпород на Яндекс.Диск.
+    """
     sub_breeds = get_sub_breeds(breed)
     urls = get_urls(breed, sub_breeds)
-    yandex_client = YaUploader()
-    yandex_client.create_folder('test_folder', "AgAAAAAJtest_tokenxkUEdew")
-    for url in urls:
-        part_name = url.split('/')
-        name = '_'.join([part_name[-2], part_name[-1]])
-        yandex_client.upload_photos_to_yd("AgAAAAAJtest_tokenxkUEdew", "test_folder", url, name)
+    yandex_client = YaUploader(TOKEN)
 
+    #Создание папки на Я.Диске
+    if not yandex_client.create_folder(folder_name):
+        logging.error(f'Не удалось создать папку "{folder_name}".')
+        return False
+
+    #Загрузка изображений
+    for url in urls:
+        if url:
+            part_name = url.split('/')
+            name = '_'.join([part_name[-2], part_name[-1]])
+            if not yandex_client.upload_photos_to_yd(folder_name, url, name):
+                logging.error(f'Не удалось загрузить файл "{name}".')
+                continue
+    return True
+
+def main():
+    upload_images()
 
 @pytest.mark.parametrize('breed', ['doberman', random.choice(['bulldog', 'collie'])])
-def test_proverka_upload_dog(breed):
-    u(breed)
+def test_upload_dog(breed):
+    upload_images(breed)
     # проверка
     url_create = 'https://cloud-api.yandex.net/v1/disk/resources'
-    headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth AgAAAAAJtest_tokenxkUEdew'}
+    headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'{TOKEN}'}
     response = requests.get(f'{url_create}?path=/test_folder', headers=headers)
     assert response.json()['type'] == "dir"
     assert response.json()['name'] == "test_folder"
