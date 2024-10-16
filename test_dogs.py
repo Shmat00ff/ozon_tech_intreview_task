@@ -1,14 +1,44 @@
 import time
 import pytest
 import requests
-import os
-from main import YaUploader, upload_images, get_sub_breeds
+from main import YaUploader, upload_images, get_sub_breeds, get_urls
 
-TOKEN = os.getenv('YANDEX_DISK_TOKEN')
+TOKEN = 'Ваш тестовый токен'
+TEST_BREEDS = ['bulldog', 'spaniel', 'collie', 'poodle']
+TEST_INVALID_BREED = 'invalid_breed'
 
+#Проверка работы функции get_sub_breeds
+def test_get_sub_breeds():
+    for breed in TEST_BREEDS:
+        sub_breeds = get_sub_breeds(breed)
+        assert isinstance(sub_breeds, list)
+        if sub_breeds:
+            assert all(isinstance(sub_breed, str) for sub_breed in sub_breeds)
+
+    # Проверка на недопустимую породу
+    invalid_sub_breeds = get_sub_breeds(TEST_INVALID_BREED)
+    assert invalid_sub_breeds == []
+
+#Проверка работы функции get_urls
+def test_get_urls():
+    for breed in TEST_BREEDS:
+        sub_breeds = get_sub_breeds(breed)
+        urls = get_urls(breed, sub_breeds)
+        assert isinstance(urls, list)
+
+        if urls:
+            assert all(isinstance(url, str) and url for url in urls)
+
+        # Проверка на количество URL
+        expected_count = len(sub_breeds) if sub_breeds else 1
+        assert len(urls) == expected_count
+
+    # Проверка на недопустимую породу
+    invalid_urls = get_urls(TEST_INVALID_BREED, [])
+    assert invalid_urls == []
 
 #Тестирование функции загрузки изображений
-@pytest.mark.parametrize('breed', [ 'spaniel','doberman', 'bulldog', 'collie'])
+@pytest.mark.parametrize('breed', TEST_BREEDS)
 def test_upload_dog(breed):
     folder_name = 'test_folder'
 
