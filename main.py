@@ -2,7 +2,6 @@ import requests
 import os
 import logging
 from retrying import retry
-import time
 
 #Делаем логи, для простоты отслеживания событий
 logging.basicConfig(level=logging.INFO)

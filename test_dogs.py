@@ -1,10 +1,9 @@
-import os
 import time
 import pytest
 import requests
 from main import YaUploader, upload_images, get_sub_breeds, get_urls
 
-TOKEN = os.getenv('YANDEX_DISK_TOKEN')
+TOKEN = "Ваш токен для тестирования"
 TEST_BREEDS = ['bulldog', 'spaniel', 'collie', 'poodle']
 TEST_INVALID_BREED = 'invalid_breed'
 
