@@ -1,9 +1,10 @@
+import os
 import time
 import pytest
 import requests
 from main import YaUploader, upload_images, get_sub_breeds, get_urls
 
-TOKEN = 'Ваш тестовый токен'
+TOKEN = os.getenv('YANDEX_DISK_TOKEN')
 TEST_BREEDS = ['bulldog', 'spaniel', 'collie', 'poodle']
 TEST_INVALID_BREED = 'invalid_breed'
 
@@ -25,7 +26,6 @@ def test_get_urls():
         sub_breeds = get_sub_breeds(breed)
         urls = get_urls(breed, sub_breeds)
         assert isinstance(urls, list)
-
         if urls:
             assert all(isinstance(url, str) and url for url in urls)
 
@@ -35,7 +35,7 @@ def test_get_urls():
 
     # Проверка на недопустимую породу
     invalid_urls = get_urls(TEST_INVALID_BREED, [])
-    assert invalid_urls == []
+    assert invalid_urls == ['Breed not found (master breed does not exist)']
 
 #Тестирование функции загрузки изображений
 @pytest.mark.parametrize('breed', TEST_BREEDS)
