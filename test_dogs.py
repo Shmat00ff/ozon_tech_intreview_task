@@ -7,7 +7,7 @@ from image_loader import YaUploader
 from main import upload_images
 
 TOKEN = os.getenv("YANDEX_DISK_TOKEN")
-TEST_BREEDS = ['bulldog', 'spaniel', 'collie', 'poodle']
+TEST_BREEDS = ['bulldog', 'spaniel', 'collie', 'poodle', 'doberman']
 TEST_INVALID_BREED = 'invalid_breed'
 dogs = DogsLoader()
 TEST_FOLDER_NAME = 'test_folder_1'
@@ -35,8 +35,6 @@ def test_upload_dog(breed, yandex_client):
 
     assert upload_images(breed, folder_name)
 
-    #Пауза чтобы успели все картинки прогрузиться на Диск
-    time.sleep(5)
 
     #Проверка наличия папки на Я.Диске
     response = requests.get(f'{yandex_client.base_url}?path=/{folder_name}', headers=yandex_client.headers)
