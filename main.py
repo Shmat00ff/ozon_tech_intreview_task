@@ -5,7 +5,7 @@ import time
 import requests
 
 from dogs_api import DogsLoader
-from image_loader import YaUploader
+from yandex_api import YaUploader
 TOKEN = os.getenv('YANDEX_DISK_TOKEN')
 
 

@@ -2,7 +2,7 @@ import pytest
 import requests
 import os
 from dogs_api import DogsLoader
-from image_loader import YaUploader
+from yandex_api import YaUploader
 from main import upload_images
 
 TOKEN = os.getenv("YANDEX_DISK_TOKEN")
