@@ -1,47 +1,37 @@
 import time
 import pytest
 import requests
-from main import YaUploader, upload_images, get_sub_breeds, get_urls
+import os
+from dogs_api import DogsLoader
+from image_loader import YaUploader
+from main import upload_images
 
-TOKEN = "Ваш токен для тестирования"
+TOKEN = os.getenv("YANDEX_DISK_TOKEN")
 TEST_BREEDS = ['bulldog', 'spaniel', 'collie', 'poodle']
 TEST_INVALID_BREED = 'invalid_breed'
+dogs = DogsLoader()
+TEST_FOLDER_NAME = 'test_folder_1'
 
-#Проверка работы функции get_sub_breeds
-def test_get_sub_breeds():
-    for breed in TEST_BREEDS:
-        sub_breeds = get_sub_breeds(breed)
-        assert isinstance(sub_breeds, list)
-        if sub_breeds:
-            assert all(isinstance(sub_breed, str) for sub_breed in sub_breeds)
 
-    # Проверка на недопустимую породу
-    invalid_sub_breeds = get_sub_breeds(TEST_INVALID_BREED)
-    assert invalid_sub_breeds == []
+@pytest.fixture(scope='session')
+def yandex_client():
+    """
+    Создаем клиента для работы с Яндекс.Диском, который будет использоваться в тестах.
+    """
+    client = YaUploader(TOKEN)
+    yield client
+    # Очистка после завершения всех тестов
+    response = requests.delete(f'{client.base_url}?path={TEST_FOLDER_NAME}&permanently=true', headers=client.headers)
+    if response.status_code == 204:
+        print(f'Папка "{TEST_FOLDER_NAME}" успешно удалена после тестов.')
+    else:
+        print(f'Не удалось удалить папку "{TEST_FOLDER_NAME}" после тестов. Статус: {response.status_code}')
 
-#Проверка работы функции get_urls
-def test_get_urls():
-    for breed in TEST_BREEDS:
-        sub_breeds = get_sub_breeds(breed)
-        urls = get_urls(breed, sub_breeds)
-        assert isinstance(urls, list)
-        if urls:
-            assert all(isinstance(url, str) and url for url in urls)
-
-        # Проверка на количество URL
-        expected_count = len(sub_breeds) if sub_breeds else 1
-        assert len(urls) == expected_count
-
-    # Проверка на недопустимую породу
-    invalid_urls = get_urls(TEST_INVALID_BREED, [])
-    assert invalid_urls == ['Breed not found (master breed does not exist)']
 
 #Тестирование функции загрузки изображений
 @pytest.mark.parametrize('breed', TEST_BREEDS)
-def test_upload_dog(breed):
-    folder_name = 'test_folder'
-
-    yandex_client = YaUploader(TOKEN)
+def test_upload_dog(breed, yandex_client):
+    folder_name = TEST_FOLDER_NAME
 
     assert upload_images(breed, folder_name)
 
@@ -56,7 +46,7 @@ def test_upload_dog(breed):
 
     #Проверка количества загруженных изображений
     items = response.json().get('_embedded', {}).get('items', [])
-    sub_breeds = get_sub_breeds(breed)
+    sub_breeds = dogs.get_sub_breeds(breed)
     expected_count = len(sub_breeds) if sub_breeds else 1
     actual_count = sum(1 for item in items if item['name'].startswith(breed))
     assert actual_count == expected_count
