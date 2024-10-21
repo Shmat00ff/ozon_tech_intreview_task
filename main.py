@@ -1,8 +1,27 @@
 import logging
 import os
+import time
+
+import requests
+
 from dogs_api import DogsLoader
 from image_loader import YaUploader
 TOKEN = os.getenv('YANDEX_DISK_TOKEN')
+
+
+def wait_for_file(yandex_client, path, timeout=10, interval=3):
+    """
+    Ожидает появления файла на Яндекс.Диске в течение указанного времени.
+    """
+    elapsed_time = 0
+    while elapsed_time < timeout:
+        response = requests.get(f'{yandex_client.base_url}?path={path}', headers=yandex_client.headers)
+        if response.status_code == 200:
+            return True  # Файл найден
+        time.sleep(interval)
+        elapsed_time += interval
+    return False  # Файл не найден за отведенное время
+
 
 def upload_images(breed, folder_name):
     """
@@ -14,7 +33,6 @@ def upload_images(breed, folder_name):
     sub_breeds = dogs.get_sub_breeds(breed)
     urls = dogs.get_urls(breed, sub_breeds)
     yandex_client = YaUploader(TOKEN)
-
     #Создание папки на Я.Диске
     if not yandex_client.create_folder(folder_name):
         logging.error(f'Не удалось создать папку "{folder_name}".')
@@ -24,10 +42,13 @@ def upload_images(breed, folder_name):
     for url in urls:
         if url:
             part_name = url.split('/')
-            name = '_'.join([part_name[-2], part_name[-1]])
-            if not yandex_client.upload_photos_to_yd(folder_name, url, name):
-                logging.error(f'Не удалось загрузить файл "{name}".')
+            name = part_name[-2]
+            yandex_client.upload_photos_to_yd(folder_name, url, name)
+            if not wait_for_file(yandex_client,f'{folder_name}/{name}'):
+                logging.error(f'Не удалось загрузить файл "{name}". Новая попытка')
+                yandex_client.upload_photos_to_yd(folder_name, url, name)
                 continue
+
     return True
 
 def main():
