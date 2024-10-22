@@ -24,7 +24,7 @@ def yandex_client():
     yield client
     # Очистка после завершения всех тестов
     response = requests.delete(f'{client.base_url}?path={TEST_FOLDER_NAME}&permanently=true', headers=client.headers)
-    if response.status_code == 204:
+    if response.status_code == 202:
         print(f'Папка "{TEST_FOLDER_NAME}" успешно удалена после тестов.')
     else:
         print(f'Не удалось удалить папку "{TEST_FOLDER_NAME}" после тестов. Статус: {response.status_code}')
