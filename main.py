@@ -1,12 +1,13 @@
 import logging
-import os
 import time
-
 import requests
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+TOKEN = os.getenv('YANDEX_DISK_TOKEN')
 from dogs_api import DogsLoader
 from yandex_api import YaUploader
-TOKEN = os.getenv('YANDEX_DISK_TOKEN')
 
 
 def wait_for_file(yandex_client, path, timeout=10, interval=3):

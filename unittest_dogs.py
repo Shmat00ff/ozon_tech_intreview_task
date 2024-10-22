@@ -1,6 +1,9 @@
 from dogs_api import DogsLoader
+from dotenv import load_dotenv
+import os
 
-TOKEN = "Ваш токен для тестирования"
+load_dotenv()
+TOKEN = os.getenv('YANDEX_DISK_TOKEN')
 TEST_BREEDS = ['bulldog', 'spaniel', 'collie', 'poodle']
 TEST_INVALID_BREED = 'invalid_breed'
 dogs = DogsLoader()

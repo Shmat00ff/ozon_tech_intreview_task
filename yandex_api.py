@@ -2,12 +2,17 @@ import requests
 import os
 import logging
 from retrying import retry
+from dotenv import load_dotenv
+
+#Скрыть токен, для безопасности
+load_dotenv()
+TOKEN = os.getenv('YANDEX_DISK_TOKEN')
 
 #Делаем логи, для простоты отслеживания событий
 logging.basicConfig(level=logging.INFO)
 
-#Скрыть токен, для безопасности
-TOKEN = os.getenv('YANDEX_DISK_TOKEN')
+
+
 
 
 class YaUploader:

@@ -4,8 +4,11 @@ import os
 from dogs_api import DogsLoader
 from yandex_api import YaUploader
 from main import upload_images
+from dotenv import load_dotenv
 
-TOKEN = os.getenv("YANDEX_DISK_TOKEN")
+
+load_dotenv()
+TOKEN = os.getenv('YANDEX_DISK_TOKEN')
 TEST_BREEDS = ['bulldog', 'spaniel', 'collie', 'poodle', 'doberman']
 TEST_INVALID_BREED = 'invalid_breed'
 dogs = DogsLoader()
